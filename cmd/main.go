@@ -2,7 +2,7 @@
 // @version 1.0
 // @description API for file upload scanning service
 // @host localhost:8080
-// @BasePath /api/v1
+// @BasePath /
 package main
 
 import (
@@ -16,6 +16,7 @@ import (
 
 	_ "github.com/priyansh7parikh/file-upload-scan/docs"
 	"github.com/priyansh7parikh/file-upload-scan/internal/controller"
+	"github.com/priyansh7parikh/file-upload-scan/internal/logger"
 	"github.com/priyansh7parikh/file-upload-scan/internal/queue"
 	"github.com/priyansh7parikh/file-upload-scan/internal/repository"
 	service "github.com/priyansh7parikh/file-upload-scan/internal/services"
@@ -24,6 +25,14 @@ import (
 )
 
 func main() {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "dev"
+	}
+
+	logger.Init(env)
+	defer logger.Log.Sync()
+
 	// ---- dependencies ----
 	repo := repository.NewFileRepository()
 	jobQueue := &queue.InMemoryQueue{}
@@ -56,7 +65,7 @@ func main() {
 
 	// ---- graceful shutdown ----
 	go func() {
-		log.Println("🚀 Upload service running on :8080")
+		log.Println("Upload service running on :8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen error: %v", err)
 		}
@@ -66,7 +75,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	log.Println("⏳ shutting down server...")
+	log.Println("shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -75,5 +84,5 @@ func main() {
 		log.Fatalf("shutdown failed: %v", err)
 	}
 
-	log.Println("✅ server stopped gracefully")
+	log.Println("server stopped gracefully")
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 	"time"
 
@@ -41,6 +42,7 @@ func (s *UploadService) HandleUpload(
 
 	tempPath, size, err := s.storage.Save(reader)
 	if err != nil {
+		log.Println("error is %v", err)
 		return uuid.Nil, err
 	}
 

@@ -1,10 +1,12 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
+	"time"
 
+	"github.com/priyansh7parikh/file-upload-scan/internal/logger"
 	service "github.com/priyansh7parikh/file-upload-scan/internal/services"
+	"go.uber.org/zap"
 )
 
 type UploadHandler struct {
@@ -28,8 +30,14 @@ func NewUploadHandler(s *service.UploadService) *UploadHandler {
 // @Failure 500 {string} string "internal error"
 // @Router /upload [post]
 func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	file, header, err := r.FormFile("file")
 	if err != nil {
+		logger.Log.Error("failed to read multipart file",
+			zap.Error(err),
+			zap.String("path", r.URL.Path),
+		)
 		http.Error(w, "invalid multipart request", http.StatusBadRequest)
 		return
 	}
@@ -37,18 +45,19 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.service.HandleUpload(r.Context(), file, header)
 	if err != nil {
-		status := http.StatusInternalServerError
-
-		switch {
-		case errors.Is(err, service.ErrFileTooLarge):
-			status = http.StatusRequestEntityTooLarge
-		case errors.Is(err, service.ErrInvalidFileType):
-			status = http.StatusBadRequest
-		}
-
-		http.Error(w, err.Error(), status)
+		logger.Log.Error("upload failed",
+			zap.Error(err),
+			zap.String("filename", header.Filename),
+		)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	logger.Log.Info("file uploaded successfully",
+		zap.String("file_id", id.String()),
+		zap.String("filename", header.Filename),
+		zap.Duration("latency", time.Since(start)),
+	)
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(id.String()))
