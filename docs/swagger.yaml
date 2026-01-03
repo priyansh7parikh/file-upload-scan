@@ -1,0 +1,42 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact: {}
+  description: API for file upload scanning service
+  title: File Upload Scan API
+  version: "1.0"
+paths:
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a file and schedules it for virus scanning
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - text/plain
+      responses:
+        "202":
+          description: file_id
+          schema:
+            type: string
+        "400":
+          description: invalid request
+          schema:
+            type: string
+        "413":
+          description: file too large
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: Upload a file securely
+      tags:
+      - files
+swagger: "2.0"
