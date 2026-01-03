@@ -1,4 +1,4 @@
-package config
+package model
 
 import (
 	"time"
@@ -26,4 +26,13 @@ type File struct {
 	FinalPath    *string
 	CreatedAt    time.Time
 	ScannedAt    *time.Time
+}
+
+type ScanJob struct {
+	ID         uuid.UUID
+	FileID     uuid.UUID
+	Status     string
+	RetryCount int
+	LastError  *string
+	CreatedAt  time.Time
 }
