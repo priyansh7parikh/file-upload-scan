@@ -1,8 +1,3 @@
-// @title File Upload Scan API
-// @version 1.0
-// @description API for file upload scanning service
-// @host localhost:8080
-// @BasePath /
 package main
 
 import (
@@ -15,13 +10,9 @@ import (
 	"time"
 
 	_ "github.com/priyansh7parikh/file-upload-scan/docs"
-	"github.com/priyansh7parikh/file-upload-scan/internal/controller"
+
 	"github.com/priyansh7parikh/file-upload-scan/internal/logger"
-	"github.com/priyansh7parikh/file-upload-scan/internal/queue"
-	"github.com/priyansh7parikh/file-upload-scan/internal/repository"
-	service "github.com/priyansh7parikh/file-upload-scan/internal/services"
-	"github.com/priyansh7parikh/file-upload-scan/internal/storage"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/priyansh7parikh/file-upload-scan/internal/router"
 )
 
 func main() {
@@ -34,33 +25,29 @@ func main() {
 	defer logger.Log.Sync()
 
 	// ---- dependencies ----
-	repo := repository.NewFileRepository()
-	jobQueue := &queue.InMemoryQueue{}
+	// repo := repository.NewFileRepository()
+	// jobQueue := &queue.InMemoryQueue{}
 
-	tempStorage := &storage.TempStorage{
-		BasePath: "/tmp/uploads",
-	}
+	// tempStorage := &storage.TempStorage{
+	// 	BasePath: "/tmp/uploads",
+	// }
 
-	validator := &service.ValidationService{}
-	uploadService := service.NewUploadService(
-		validator,
-		tempStorage,
-		repo,
-		jobQueue,
-	)
+	// validator := &service.ValidationService{}
+	// uploadService := service.NewUploadService(
+	// 	validator,
+	// 	tempStorage,
+	// 	repo,
+	// 	jobQueue,
+	// )
 
-	uploadHandler := controller.NewUploadHandler(uploadService)
+	// uploadHandler := controller.NewUploadHandler(uploadService)
 
 	// ---- router ----
-	mux := http.NewServeMux()
-	mux.Handle("/upload", uploadHandler)
-
-	// swagger
-	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+	handler := router.New()
 
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: handler,
 	}
 
 	// ---- graceful shutdown ----

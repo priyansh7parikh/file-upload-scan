@@ -1,10 +1,5 @@
-basePath: /
-host: localhost:8080
 info:
   contact: {}
-  description: API for file upload scanning service
-  title: File Upload Scan API
-  version: "1.0"
 paths:
   /upload:
     post:
